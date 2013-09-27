@@ -1,0 +1,7 @@
+render "navbar"
+
+.container
+  = outlet
+
+  render "footer"
+
