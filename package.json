@@ -18,8 +18,8 @@
     "coffeelint-brunch": "1.5.0",
     "css-brunch": "1.7.0",
     "uglify-js-brunch": "1.7.2",
-    "clean-css-brunch": "1.6.0",
-    "auto-reload-brunch": "1.6.5",
+    "clean-css-brunch": "1.7.1",
+    "auto-reload-brunch": "1.7.0",
     "emblem-brunch": "git://github.com/jakesjews/emblem-brunch.git",
     "stylus-brunch": "1.7.0",
     "appcache-brunch": "1.7.0"
