@@ -1,5 +1,8 @@
 window.App = Em.Application.create()
 
+delete Swag.helpers.partial
+Swag.registerHelpers()
+
 require 'application'
 
 require 'webServiceConnection'
