@@ -1,2 +1,0 @@
-window.App.configuration =
-  servicePrefix: "http://webservice"

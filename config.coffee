@@ -10,6 +10,9 @@ else
 
 exports.config =
   # See docs at http://brunch.readthedocs.org/en/latest/config.html.
+  server:
+    path: 'server.coffee'
+
   plugins:
     coffeelint:
       pattern: /^app\/.*\.coffee$/

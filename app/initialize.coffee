@@ -27,6 +27,7 @@ require 'controls/footer/footer'
 ## Pages
 ###############################
 require 'pages/home/home'
+require 'pages/home/main'
 
 #################################
 ## Define Routes Here

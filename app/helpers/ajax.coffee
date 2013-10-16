@@ -1,6 +1,6 @@
 App.ajax = (type, url, data, content) ->
   $.ajax
-    url: App.configuration.servicePrefix + "/" + url
+    url: App.configuration.servicePrefix + url
     dataType: 'json'
     type: type ? 'GET'
     data: data ? {}
