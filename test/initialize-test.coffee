@@ -9,7 +9,6 @@ App.rootElement = '#mocha-app-body'
 App.setupForTesting()
 App.injectTestHelpers()
 Ember.Test.adapter = Ember.Test.MochaAdapter.create()
-Ember.run(App, App.advanceReadiness)
 
 window.exists = (selector) ->
   !!find(selector).length

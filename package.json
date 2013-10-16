@@ -23,12 +23,5 @@
     "emblem-brunch": "git://github.com/jakesjews/emblem-brunch.git",
     "stylus-brunch": "1.7.0",
     "appcache-brunch": "1.7.0"
-  },
-  "devDependencies": {
-    "chai": "1.7.2",
-    "sinon": "1.7.3",
-    "sinon-chai": "2.4.0",
-    "ws": "0.4.29",
-    "mocha-phantomjs": "3.1.2"
   }
 }

@@ -18,7 +18,7 @@ exports.config =
       pattern: /^app\/.*\.coffee$/
       options:
         max_line_length:
-          value: 1000
+          value: 200
         indentation:
           value: 2
           level: "error"
@@ -37,6 +37,7 @@ exports.config =
         'test/javascripts/test-vendor.js': /^test[\\/](?=vendor)/
       order:
         before: [
+          'test/vendor/scripts/chai.js',
           'bower_components/jquery/jquery.js',
           'bower_components/jquery-migrate/jquery-migrate.min.js',
           'bower_components/handlebars/handlebars.js',
@@ -48,7 +49,7 @@ exports.config =
     stylesheets:
       joinTo:
         'stylesheets/vendor.css': /^(bower_components|vendor)/
-        'stylesheets/app.css': /^app\/styles/
+        'stylesheets/app.css': /^app/
         'test/stylesheets/test.css': /^test/
 
     templates:
