@@ -17,6 +17,4 @@ if app.get('env') == 'development'
   app.use(express.errorHandler())
 
 exports.startServer = (port, path, callback) ->
-  http.createServer(app).listen port, ->
-    console.log "Listening on port: #{port}"
-    callback()
+  http.createServer(app).listen(port, callback)
