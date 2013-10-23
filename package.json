@@ -20,7 +20,7 @@
     "uglify-js-brunch": "1.7.2",
     "clean-css-brunch": "1.7.1",
     "auto-reload-brunch": "1.7.0",
-    "emblem-brunch": "git://github.com/jakesjews/emblem-brunch.git",
+    "emblem-brunch": "git://github.com/eflexsystems/emblem-brunch.git",
     "stylus-brunch": "1.7.0",
     "appcache-brunch": "1.7.0",
     "express": "3.4.0"
