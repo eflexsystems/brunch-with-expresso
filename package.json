@@ -13,16 +13,16 @@
     "test": "./bin/test"
   },
   "dependencies": {
-    "javascript-brunch": "1.7.0",
-    "coffee-script-brunch": "1.7.2",
+    "javascript-brunch": "1.7.1",
+    "coffee-script-brunch": "1.7.3",
     "coffeelint-brunch": "1.5.0",
     "css-brunch": "1.7.0",
-    "uglify-js-brunch": "1.7.2",
+    "uglify-js-brunch": "1.7.6",
     "clean-css-brunch": "1.7.1",
-    "auto-reload-brunch": "1.7.0",
+    "auto-reload-brunch": "1.7.1",
     "emblem-brunch": "git://github.com/eflexsystems/emblem-brunch.git",
-    "stylus-brunch": "1.7.0",
-    "appcache-brunch": "1.7.0",
-    "express": "3.4.0"
+    "stylus-brunch": "1.8.0",
+    "digest-brunch": "1.0.4",
+    "express": "3.4.8"
   }
 }

@@ -11,6 +11,10 @@
   <script src="../javascripts/app.js"></script>
   <script src="javascripts/test-vendor.js"></script>
   <script src="javascripts/test.js"></script>
+</head>
+<body>
+  <div id="mocha"></div>
+  <div id="mocha-app-body"></div>
   <script>
     require('test/initialize-test')
     if (window.mochaPhantomJS) { 
@@ -21,10 +25,5 @@
       });
     }
   </script>
-</head>
-<body>
-  <div id="mocha"></div>
-  <canvas id="myCanvas"><canvas>
-  <div id="mocha-app-body"></div>
 </body>
 </html>

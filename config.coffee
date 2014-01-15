@@ -43,7 +43,11 @@ exports.config =
           'bower_components/handlebars/handlebars.js',
           'bower_components/ember/ember.js',
           'bower_components/ember/ember.min.js',
+          'vendor/js/swag.js',
           'bower_components/bootstrap/dist/js/bootstrap.js'
+        ]
+        after: [
+          'test/vendor/scripts/mocha-as-promised.js'
         ]
 
     stylesheets:
@@ -51,6 +55,12 @@ exports.config =
         'stylesheets/vendor.css': /^(bower_components|vendor)/
         'stylesheets/app.css': /^app/
         'test/stylesheets/test.css': /^test/
+
+      order:
+        after: [
+          'bower_components/bootstrap/dist/css/bootstrap.css',
+          'vendor/css/font-awesome.css'
+        ]
 
     templates:
       precompile: true
@@ -63,7 +73,7 @@ exports.config =
         jquery: 'bower_components/jquery/jquery.min.js'
         ember: 'vendor/js/ember.min.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
-        emblem: 'emblem.min.js'
+        emblem: 'bower_components/emblem/dist/emblem.min.js'
 
   conventions:
     ignored: (path) ->

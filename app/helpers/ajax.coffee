@@ -1,27 +1,36 @@
 App.ajax = (type, url, data, content) ->
-  $.ajax
-    url: App.configuration.servicePrefix + url
+  options =
+    url: App.configuration.servicePrefix + "/" + url
     dataType: 'json'
     type: type ? 'GET'
-    data: data ? {}
 
-App.ajaxGet = (url, data, emberClass) ->
-  request = App.ajax('GET', url, data)
+  if type != 'GET' && type != 'DELETE'
+    options.contentType = 'application/json'
+    options.data = if data? then JSON.stringify(data) else {}
+  else
+    options.data = data ? {}
+
+  req = $.ajax(options)
 
   if emberClass?
-    request.then (data) ->
+    req = req.then (data) ->
       if _.isArray(data)
         emberClass.createMany(data)
       else
         emberClass.create(data)
-  else
-    request
 
-App.ajaxPost = (url, data) ->
-  App.ajax('POST', url, data)
+  new Ember.RSVP.Promise (resolve, reject) ->
+    req.then(resolve)
+    req.fail(reject)
 
-App.ajaxPut = (url, data) ->
-  App.ajax('PUT', url, data)
+App.ajaxGet = (url, data, emberClass) ->
+  App.ajax('GET', url, data, emberClass)
+
+App.ajaxPost = (url, data, emberClass) ->
+  App.ajax('POST', url, data, emberClass)
+
+App.ajaxPut = (url, data, emberClass) ->
+  App.ajax('PUT', url, data, emberClass)
 
 App.ajaxDelete = (url, data) ->
   App.ajax('DELETE', url, data)
