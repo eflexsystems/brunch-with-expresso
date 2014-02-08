@@ -1,7 +1,8 @@
-express = require('express')
-routes  = require('./routes')
-http    = require('http')
-path    = require('path')
+express  = require('express')
+routes   = require('./routes')
+http     = require('http')
+path     = require('path')
+socketio = require('socket.io')
 
 app = express()
 app.use(express.favicon())
@@ -17,4 +18,7 @@ if app.get('env') == 'development'
   app.use(express.errorHandler())
 
 exports.startServer = (port, path, callback) ->
-  http.createServer(app).listen(port, callback)
+  server = http.createServer(app)
+  io = socketio.listen(server)
+  server.listen(port, callback)
+

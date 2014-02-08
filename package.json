@@ -22,7 +22,8 @@
     "auto-reload-brunch": "1.7.1",
     "emblem-brunch": "git://github.com/eflexsystems/emblem-brunch.git",
     "stylus-brunch": "1.8.0",
-    "digest-brunch": "1.0.4",
-    "express": "3.4.8"
+    "digest-brunch": "1.0.5",
+    "express": "3.4.8",
+    "socket.io": "0.9.16"
   }
 }
