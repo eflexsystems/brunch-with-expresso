@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "javascript-brunch": "1.7.1",
-    "coffee-script-brunch": "1.7.3",
+    "coffee-script-brunch": "1.8.0",
     "coffeelint-brunch": "1.5.0",
     "css-brunch": "1.7.0",
     "uglify-js-brunch": "1.7.6",

@@ -1,47 +1,25 @@
+# hack until emblem fixes depreciation warning
+Ember.deprecate = ->
+
 window.App = Em.Application.create()
 
 delete Swag.helpers.partial
+delete Swag.helpers.log
 Swag.registerHelpers()
 
 require 'overrides'
-require 'application'
 require 'webServiceConnection'
 
-###############################
-## Helpers
-###############################
-require 'helpers/serializable'
-require 'helpers/ajax'
+folderOrder = [
+  'helpers', 'models', 'controls', 'pages'
+]
 
-###############################
-## Models
-###############################
+for folder in folderOrder
+  modules = window.require.list().filter((module) -> new RegExp("^" + folder + "/").test(module))
+  for module in modules
+    require(module)
 
-###############################
-## Controls
-###############################
-require 'controls/navbar/navbar'
-require 'controls/footer/footer'
+require 'routing'
 
-###############################
-## Pages
-###############################
-require 'pages/home/home'
-require 'pages/home/main'
-
-#################################
-## Define Routes Here
-#################################
-
-App.Router.map ->
-  @route 'home', { path: "/" }
-
-##################################
-## Define navigation here
-##################################
-
-# App.NavBarMap = [
-#   { key: "home", label: "home", image: "", children: [
-#     { key: "home.login", label: "login" }]}
-# ]
-
+require 'application'
+require 'main'

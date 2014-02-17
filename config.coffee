@@ -38,8 +38,7 @@ exports.config =
       order:
         before: [
           'test/vendor/scripts/chai.js',
-          'bower_components/jquery/jquery.js',
-          'bower_components/jquery-migrate/jquery-migrate.min.js',
+          'bower_components/jquery/dist/jquery.min.js',
           'bower_components/handlebars/handlebars.js',
           'bower_components/ember/ember.js',
           'bower_components/ember/ember.min.js',
@@ -70,7 +69,7 @@ exports.config =
       paths:
         # If you don't specify jquery and ember there,
         # raw (non-Emberized) Handlebars templates will be compiled.
-        jquery: 'bower_components/jquery/jquery.min.js'
+        jquery: 'bower_components/jquery/dist/jquery.min.js'
         ember: 'vendor/js/ember.min.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
         emblem: 'bower_components/emblem/dist/emblem.min.js'
