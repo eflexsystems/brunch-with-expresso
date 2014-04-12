@@ -18,15 +18,10 @@ exports.config =
       pattern: /^app\/.*\.coffee$/
       options:
         max_line_length:
-          value: 200
+          value: 100
         indentation:
           value: 2
           level: "error"
-
-  appcache:
-    staticRoot: '/'
-    network: ['*']
-    fallback: {}
 
   files:
     javascripts:
@@ -38,7 +33,7 @@ exports.config =
       order:
         before: [
           'test/vendor/scripts/chai.js',
-          'bower_components/jquery/dist/jquery.min.js',
+          'bower_components/jquery/dist/jquery.js',
           'bower_components/handlebars/handlebars.js',
           'bower_components/ember/ember.js',
           'bower_components/ember/ember.min.js',
@@ -46,7 +41,7 @@ exports.config =
           'bower_components/bootstrap/dist/js/bootstrap.js'
         ]
         after: [
-          'test/vendor/scripts/mocha-as-promised.js'
+          'test/vendor/scripts/adapter.js'
         ]
 
     stylesheets:
@@ -72,7 +67,7 @@ exports.config =
         jquery: 'bower_components/jquery/dist/jquery.min.js'
         ember: 'vendor/js/ember.min.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
-        emblem: 'bower_components/emblem/dist/emblem.min.js'
+        emblem: 'node_modules/emblem/dist/emblem.js'
 
   conventions:
     ignored: (path) ->

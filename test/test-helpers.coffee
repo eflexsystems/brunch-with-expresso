@@ -1,4 +1,3 @@
-# This file will be automatically required when using `brunch test` command.
 mocha.setup("bdd")
 window.expect = chai.expect
 

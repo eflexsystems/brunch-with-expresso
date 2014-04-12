@@ -1,10 +1,9 @@
-# hack until emblem fixes depreciation warning
-Ember.deprecate = ->
-
 window.App = Em.Application.create()
 
+# don't conflict with ember helpers
 delete Swag.helpers.partial
 delete Swag.helpers.log
+
 Swag.registerHelpers()
 
 require 'overrides'
@@ -15,9 +14,11 @@ folderOrder = [
 ]
 
 for folder in folderOrder
-  modules = window.require.list().filter((module) -> new RegExp("^" + folder + "/").test(module))
-  for module in modules
-    require(module)
+  regex = new RegExp("^#{folder}/")
+  window.require
+    .list()
+    .filter((module) -> regex.test(module))
+    .forEach(require)
 
 require 'routing'
 
