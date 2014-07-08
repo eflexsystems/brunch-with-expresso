@@ -951,6 +951,7 @@ module.exports = function(suite){
 
     context.describe = context.context = function(title, fn){
       var suite = Suite.create(suites[0], title);
+      suite.file = file;
       suites.unshift(suite);
       fn.call(suite);
       suites.shift();
@@ -991,6 +992,7 @@ module.exports = function(suite){
       var suite = suites[0];
       if (suite.pending) var fn = null;
       var test = new Test(title, fn);
+      test.file = file;
       suite.addTest(test);
       return test;
     };
@@ -1051,7 +1053,7 @@ module.exports = function(suite){
 
   suite.on('require', visit);
 
-  function visit(obj) {
+  function visit(obj, file) {
     var suite;
     for (var key in obj) {
       if ('function' == typeof obj[key]) {
@@ -1070,7 +1072,9 @@ module.exports = function(suite){
             suites[0].afterEach(fn);
             break;
           default:
-            suites[0].addTest(new Test(key, fn));
+            var test = new Test(key, fn);
+            test.file = file;
+            suites[0].addTest(test);
         }
       } else {
         var suite = Suite.create(suites[0], key);
@@ -1172,6 +1176,7 @@ module.exports = function(suite){
     context.suite = function(title){
       if (suites.length > 1) suites.shift();
       var suite = Suite.create(suites[0], title);
+      suite.file = file;
       suites.unshift(suite);
       return suite;
     };
@@ -1193,6 +1198,7 @@ module.exports = function(suite){
 
     context.test = function(title, fn){
       var test = new Test(title, fn);
+      test.file = file;
       suites[0].addTest(test);
       return test;
     };
@@ -1299,6 +1305,7 @@ module.exports = function(suite){
 
     context.suite = function(title, fn){
       var suite = Suite.create(suites[0], title);
+      suite.file = file;
       suites.unshift(suite);
       fn.call(suite);
       suites.shift();
@@ -1335,6 +1342,7 @@ module.exports = function(suite){
       var suite = suites[0];
       if (suite.pending) var fn = null;
       var test = new Test(title, fn);
+      test.file = file;
       suite.addTest(test);
       return test;
     };
@@ -3107,10 +3115,10 @@ function JSONReporter(runner) {
 
   runner.on('end', function(){
     var obj = {
-        stats: self.stats
-      , tests: tests.map(clean)
-      , failures: failures.map(clean)
-      , passes: passes.map(clean)
+      stats: self.stats,
+      tests: tests.map(clean),
+      failures: failures.map(clean),
+      passes: passes.map(clean)
     };
 
     process.stdout.write(JSON.stringify(obj, null, 2));
@@ -3128,11 +3136,13 @@ function JSONReporter(runner) {
 
 function clean(test) {
   return {
-      title: test.title
-    , fullTitle: test.fullTitle()
-    , duration: test.duration
+    title: test.title,
+    fullTitle: test.fullTitle(),
+    duration: test.duration,
+    err: test.err
   }
 }
+
 }); // module: reporters/json.js
 
 require.register("reporters/landing.js", function(module, exports, require){
@@ -4515,7 +4525,6 @@ Runner.prototype.checkGlobals = function(test){
   var ok = this._globals;
 
   var globals = this.globalProps();
-  var isNode = process.kill;
   var leaks;
 
   if (test) {
@@ -5065,9 +5074,11 @@ exports.create = function(parent, title){
  * @api private
  */
 
-function Suite(title, ctx) {
+function Suite(title, parentContext) {
   this.title = title;
-  this.ctx = ctx;
+  var context = function() {};
+  context.prototype = parentContext;
+  this.ctx = new context();
   this.suites = [];
   this.tests = [];
   this.pending = false;
@@ -5667,7 +5678,7 @@ function highlight(js) {
     .replace(/('.*?')/gm, '<span class="string">$1</span>')
     .replace(/(\d+\.\d+)/gm, '<span class="number">$1</span>')
     .replace(/(\d+)/gm, '<span class="number">$1</span>')
-    .replace(/\bnew *(\w+)/gm, '<span class="keyword">new</span> <span class="init">$1</span>')
+    .replace(/\bnew[ \t]+(\w+)/gm, '<span class="keyword">new</span> <span class="init">$1</span>')
     .replace(/\b(function|new|throw|return|var|if|else)\b/gm, '<span class="keyword">$1</span>')
 }
 
@@ -5823,12 +5834,12 @@ mocha.run = function(fn){
   if (query.grep) mocha.grep(query.grep);
   if (query.invert) mocha.invert();
 
-  return Mocha.prototype.run.call(mocha, function(){
+  return Mocha.prototype.run.call(mocha, function(err){
     // The DOM Document is not available in Web Workers.
     if (global.document) {
       Mocha.utils.highlightTags('code');
     }
-    if (fn) fn();
+    if (fn) fn(err);
   });
 };
 

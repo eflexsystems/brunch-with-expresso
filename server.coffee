@@ -12,16 +12,17 @@ errorHandler = require 'errorHandler'
 app = express()
 
 app.use(cookieParser())
-app.use(bodyParser())
-app.use(logger('dev'))
-app.use(bodyParser())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded(extended: true))
 app.use(express.static(path.join(__dirname, 'public')))
 
 env = process.env.NODE_ENV || 'development'
+
 if env == 'development'
   app.use(errorHandler())
+  app.use(logger('dev'))
 
-app.get('/hello', routes.hello)
+app.get('/messages/:id', routes.messages)
 
 exports.startServer = (port, path, callback) ->
   server = http.createServer(app)

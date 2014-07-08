@@ -3,10 +3,17 @@ sysPath = require 'path'
 startsWith = (string, substring) ->
   string.lastIndexOf(substring, 0) is 0
 
-if process.env.NODE_ENV == 'production'
-  emberRegex = /^(bower_components|vendor\/js\/(?!ember.js))/
+if process.env.BRUNCH_ENV == 'production'
+  noMatch         = /\b\B/
+  testRegex       = noMatch
+  vendorTestRegex = noMatch
+  testCssRegex    = noMatch
+  vendorJsRegex   = /^(bower_components|vendor\/js\/(?!ember.js|ember-data.js))/
 else
-  emberRegex = /^(bower_components|vendor\/js\/(?!ember.min.js))/
+  testRegex       = /^test[\\/](?!vendor)/
+  vendorTestRegex = /^test[\\/](?=vendor)/
+  testCssRegex    = /^test/
+  vendorJsRegex   = /^(bower_components|vendor\/js\/(?!ember.min.js|ember-data.min.js))/
 
 exports.config =
   # See docs at http://brunch.readthedocs.org/en/latest/config.html.
@@ -19,28 +26,34 @@ exports.config =
       options:
         max_line_length:
           value: 100
-        indentation:
-          value: 2
+        no_interpolation_in_single_quotes:
+          level: "error"
+        no_stand_alone_at:
+          level: "error"
+        space_operators:
+          level: "error"
+        cyclomatic_complexity:
+          value: 12
           level: "error"
 
   files:
     javascripts:
       joinTo:
         'javascripts/app.js': /^app/
-        'javascripts/vendor.js': emberRegex
-        'test/javascripts/test.js': /^test[\\/](?!vendor)/
-        'test/javascripts/test-vendor.js': /^test[\\/](?=vendor)/
+        'javascripts/vendor.js': vendorJsRegex
+        'test/javascripts/test.js': testRegex
+        'test/javascripts/test-vendor.js': vendorTestRegex
       order:
         before: [
           'test/vendor/scripts/chai.js',
           'bower_components/jquery/dist/jquery.js',
           'bower_components/handlebars/handlebars.js',
-          'bower_components/ember/ember.js',
-          'bower_components/ember/ember.min.js',
-          'vendor/js/swag.js',
-          'bower_components/bootstrap/dist/js/bootstrap.js'
+          'vendor/js/ember.js',
+          'vendor/js/ember.min.js'
         ]
         after: [
+          'vendor/js/ember-data.js',
+          'vendor/js/ember-data.min.js'
           'test/vendor/scripts/adapter.js'
         ]
 
@@ -48,13 +61,7 @@ exports.config =
       joinTo:
         'stylesheets/vendor.css': /^(bower_components|vendor)/
         'stylesheets/app.css': /^app/
-        'test/stylesheets/test.css': /^test/
-
-      order:
-        after: [
-          'bower_components/bootstrap/dist/css/bootstrap.css',
-          'vendor/css/font-awesome.css'
-        ]
+        'test/stylesheets/test.css': testCssRegex
 
     templates:
       precompile: true
@@ -74,4 +81,9 @@ exports.config =
       isStylusFile = sysPath.extname(path) == ".styl"
       startsWithUnderscore = startsWith sysPath.basename(path), '_'
       return isStylusFile && startsWithUnderscore
+
+  overrides:
+    production:
+      plugins:
+        autoReload: enabled: false
 

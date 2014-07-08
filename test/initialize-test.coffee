@@ -8,9 +8,17 @@ App.injectTestHelpers()
 
 folders = ['fixtures', 'unit']
 
+files = window.require.list()
+
 for folder in folders
-  regex = new RegExp("^text/#{folder}/")
-  modules = window.require
-    .list()
+  regex = ///^test/#{folder}///
+  modules = files
     .filter((module) -> regex.test(module))
     .forEach(require)
+
+beforeEach ->
+  App.reset()
+  @sandbox = sinon.sandbox.create()
+
+afterEach ->
+  @sandbox.restore()

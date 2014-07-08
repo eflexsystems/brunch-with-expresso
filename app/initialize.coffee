@@ -1,22 +1,17 @@
 window.App = Em.Application.create()
 
-# don't conflict with ember helpers
-delete Swag.helpers.partial
-delete Swag.helpers.log
-
-Swag.registerHelpers()
-
 require 'overrides'
-require 'webServiceConnection'
 
 folderOrder = [
   'helpers', 'models', 'controls', 'pages'
 ]
 
+files = window.require.list()
+
 for folder in folderOrder
-  regex = new RegExp("^#{folder}/")
-  window.require
-    .list()
+  regex = ///^#{folder}///
+
+  files
     .filter((module) -> regex.test(module))
     .forEach(require)
 

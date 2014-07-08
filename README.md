@@ -9,7 +9,6 @@ This is an easy template to get started with a full-stack web application.
 * moment
 * bootstrap
 * emblem
-* swag
 * bower
 * font-awesome
 * stylus
@@ -18,10 +17,12 @@ This is an easy template to get started with a full-stack web application.
 ##Back-End##
 
 * node.js
+* socket.io
 * express
 
 
 ##Testing##
+
 * mocha
 * chai
 * sinon
@@ -31,5 +32,6 @@ This is an easy template to get started with a full-stack web application.
 
 
 ##Conventions##
+
 * Pages live in the pages directory and contain one or more of
 * ~ in template filenames turns into / so a file with the name 'testing~hello' will have a template name of 'testing/hello'

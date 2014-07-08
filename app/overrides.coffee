@@ -6,6 +6,6 @@ Ember.Object.reopenClass
 Ember.View.reopen
   didInsertElement: ->
     @_super()
-    Ember.run.scheduleOnce('afterRender', @, @afterRenderEvent)
+    Ember.run.scheduleOnce('afterRender', this, @afterRenderEvent)
     
   afterRenderEvent: ->
