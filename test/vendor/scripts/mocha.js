@@ -793,6 +793,20 @@ Context.prototype.timeout = function(ms){
 };
 
 /**
+ * Set test timeout `enabled`.
+ *
+ * @param {Boolean} enabled
+ * @return {Context} self
+ * @api private
+ */
+
+Context.prototype.enableTimeouts = function (enabled) {
+  this.runnable().enableTimeouts(enabled);
+  return this;
+};
+
+
+/**
  * Set test slowness threshold `ms`.
  *
  * @param {Number} ms
@@ -1421,7 +1435,7 @@ function image(name) {
  * Options:
  *
  *   - `ui` name "bdd", "tdd", "exports" etc
- *   - `reporter` reporter instance, defaults to `mocha.reporters.Dot`
+ *   - `reporter` reporter instance, defaults to `mocha.reporters.spec`
  *   - `globals` array of accepted globals
  *   - `timeout` timeout in milliseconds
  *   - `bail` bail on the first test failure
@@ -1444,6 +1458,7 @@ function Mocha(options) {
   this.reporter(options.reporter);
   if (null != options.timeout) this.timeout(options.timeout);
   this.useColors(options.useColors)
+  if (options.enableTimeouts !== null) this.enableTimeouts(options.enableTimeouts);
   if (options.slow) this.slow(options.slow);
 
   this.suite.on('pre-require', function (context) {
@@ -1488,7 +1503,7 @@ Mocha.prototype.addFile = function(file){
 };
 
 /**
- * Set reporter to `reporter`, defaults to "dot".
+ * Set reporter to `reporter`, defaults to "spec".
  *
  * @param {String|Function} reporter name or constructor
  * @api public
@@ -1498,7 +1513,7 @@ Mocha.prototype.reporter = function(reporter){
   if ('function' == typeof reporter) {
     this._reporter = reporter;
   } else {
-    reporter = reporter || 'dot';
+    reporter = reporter || 'spec';
     var _reporter;
     try { _reporter = require('./reporters/' + reporter); } catch (err) {};
     if (!_reporter) try { _reporter = require(reporter); } catch (err) {};
@@ -1702,6 +1717,21 @@ Mocha.prototype.timeout = function(timeout){
 Mocha.prototype.slow = function(slow){
   this.suite.slow(slow);
   return this;
+};
+
+/**
+ * Enable timeouts.
+ *
+ * @param {Boolean} enabled
+ * @return {Mocha}
+ * @api public
+ */
+
+Mocha.prototype.enableTimeouts = function(enabled) {
+  this.suite.enableTimeouts(arguments.length && enabled !== undefined
+    ? enabled
+    : true);
+  return this
 };
 
 /**
@@ -2039,8 +2069,8 @@ exports.list = function(failures){
     // explicitly show diff
     if (err.showDiff && sameType(actual, expected)) {
       escape = false;
-      err.actual = actual = stringify(canonicalize(actual));
-      err.expected = expected = stringify(canonicalize(expected));
+      err.actual = actual = utils.stringify(actual);
+      err.expected = expected = utils.stringify(expected);
     }
 
     // actual / expected diff
@@ -2303,53 +2333,6 @@ function colorLines(name, str) {
 }
 
 /**
- * Stringify `obj`.
- *
- * @param {Object} obj
- * @return {String}
- * @api private
- */
-
-function stringify(obj) {
-  if (obj instanceof RegExp) return obj.toString();
-  return JSON.stringify(obj, null, 2);
-}
-
-/**
- * Return a new object that has the keys in sorted order.
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
-
- function canonicalize(obj, stack) {
-   stack = stack || [];
-
-   if (utils.indexOf(stack, obj) !== -1) return obj;
-
-   var canonicalizedObj;
-
-   if ('[object Array]' == {}.toString.call(obj)) {
-     stack.push(obj);
-     canonicalizedObj = utils.map(obj, function(item) {
-       return canonicalize(item, stack);
-     });
-     stack.pop();
-   } else if (typeof obj === 'object' && obj !== null) {
-     stack.push(obj);
-     canonicalizedObj = {};
-     utils.forEach(utils.keys(obj).sort(), function(key) {
-       canonicalizedObj[key] = canonicalize(obj[key], stack);
-     });
-     stack.pop();
-   } else {
-     canonicalizedObj = obj;
-   }
-
-   return canonicalizedObj;
- }
-
-/**
  * Check that a / b have the same type.
  *
  * @param {Object} a
@@ -2363,7 +2346,6 @@ function sameType(a, b) {
   b = Object.prototype.toString.call(b);
   return a == b;
 }
-
 
 }); // module: reporters/base.js
 
@@ -2423,6 +2405,13 @@ function Doc(runner) {
     var code = utils.escape(utils.clean(test.fn.toString()));
     console.log('%s  <dd><pre><code>%s</code></pre></dd>', indent(), code);
   });
+
+  runner.on('fail', function(test, err){
+    console.log('%s  <dt class="error">%s</dt>', indent(), utils.escape(test.title));
+    var code = utils.escape(utils.clean(test.fn.toString()));
+    console.log('%s  <dd class="error"><pre><code>%s</code></pre></dd>', indent(), code);
+    console.log('%s  <dd class="error">%s</dd>', indent(), utils.escape(err));
+  });
 }
 
 }); // module: reporters/doc.js
@@ -2455,13 +2444,14 @@ function Dot(runner) {
   var self = this
     , stats = this.stats
     , width = Base.window.width * .75 | 0
-    , n = 0;
+    , n = -1;
 
   runner.on('start', function(){
     process.stdout.write('\n  ');
   });
 
   runner.on('pending', function(test){
+    if (++n % width == 0) process.stdout.write('\n  ');
     process.stdout.write(color('pending', Base.symbols.dot));
   });
 
@@ -2493,6 +2483,7 @@ function F(){};
 F.prototype = Base.prototype;
 Dot.prototype = new F;
 Dot.prototype.constructor = Dot;
+
 
 }); // module: reporters/dot.js
 
@@ -3730,7 +3721,6 @@ NyanCat.prototype.constructor = NyanCat;
 }); // module: reporters/nyan.js
 
 require.register("reporters/progress.js", function(module, exports, require){
-
 /**
  * Module dependencies.
  */
@@ -3768,7 +3758,8 @@ function Progress(runner, options) {
     , width = Base.window.width * .50 | 0
     , total = runner.total
     , complete = 0
-    , max = Math.max;
+    , max = Math.max
+    , lastN = -1;
 
   // default chars
   options.open = options.open || '[';
@@ -3790,6 +3781,12 @@ function Progress(runner, options) {
       , percent = complete / total
       , n = width * percent | 0
       , i = width - n;
+
+    if (lastN === n && !options.verbose) {
+      // Don't re-render the line if it hasn't changed
+      return;
+    }
+    lastN = n;
 
     cursor.CR();
     process.stdout.write('\u001b[J');
@@ -4081,8 +4078,7 @@ function test(test) {
 
   if ('failed' == test.state) {
     var err = test.err;
-    attrs.message = escape(err.message);
-    console.log(tag('testcase', attrs, false, tag('failure', attrs, false, cdata(err.stack))));
+    console.log(tag('testcase', attrs, false, tag('failure', {}, false, cdata(escape(err.message) + "\n" + err.stack))));
   } else if (test.pending) {
     console.log(tag('testcase', attrs, false, tag('skipped', {}, true)));
   } else {
@@ -4165,6 +4161,7 @@ function Runnable(title, fn) {
   this.sync = ! this.async;
   this._timeout = 2000;
   this._slow = 75;
+  this._enableTimeouts = true;
   this.timedOut = false;
 }
 
@@ -4208,6 +4205,21 @@ Runnable.prototype.slow = function(ms){
   if ('string' == typeof ms) ms = milliseconds(ms);
   debug('timeout %d', ms);
   this._slow = ms;
+  return this;
+};
+
+/**
+ * Set and & get timeout `enabled`.
+ *
+ * @param {Boolean} enabled
+ * @return {Runnable|Boolean} enabled or self
+ * @api private
+ */
+
+Runnable.prototype.enableTimeouts = function(enabled){
+  if (arguments.length === 0) return this._enableTimeouts;
+  debug('enableTimeouts %s', enabled);
+  this._enableTimeouts = enabled;
   return this;
 };
 
@@ -4259,6 +4271,7 @@ Runnable.prototype.resetTimeout = function(){
   var self = this;
   var ms = this.timeout() || 1e9;
 
+  if (!this._enableTimeouts) return;
   this.clearTimeout();
   this.timer = setTimeout(function(){
     self.callback(new Error('timeout of ' + ms + 'ms exceeded'));
@@ -4285,7 +4298,6 @@ Runnable.prototype.globals = function(arr){
 
 Runnable.prototype.run = function(fn){
   var self = this
-    , ms = this.timeout()
     , start = new Date
     , ctx = this.ctx
     , finished
@@ -4302,11 +4314,13 @@ Runnable.prototype.run = function(fn){
 
   // finished
   function done(err) {
+    var ms = self.timeout();
     if (self.timedOut) return;
     if (finished) return multiple(err);
     self.clearTimeout();
     self.duration = new Date - start;
     finished = true;
+    if (!err && self.duration > ms && self._enableTimeouts) err = new Error('timeout of ' + ms + 'ms exceeded');
     fn(err);
   }
 
@@ -4320,7 +4334,13 @@ Runnable.prototype.run = function(fn){
     try {
       this.fn.call(ctx, function(err){
         if (err instanceof Error || toString.call(err) === "[object Error]") return done(err);
-        if (null != err) return done(new Error('done() invoked with non-Error: ' + err));
+        if (null != err) {
+          if (Object.prototype.toString.call(err) === '[object Object]') {
+            return done(new Error('done() invoked with non-Error: ' + JSON.stringify(err)));
+          } else {
+            return done(new Error('done() invoked with non-Error: ' + err));
+          }
+        }
         done();
       });
     } catch (err) {
@@ -4348,7 +4368,13 @@ Runnable.prototype.run = function(fn){
     var result = fn.call(ctx);
     if (result && typeof result.then === 'function') {
       self.resetTimeout();
-      result.then(function(){ done() }, done);
+      result
+        .then(function() {
+          done()
+        },
+        function(reason) {
+          done(reason || new Error('Promise rejected with no or falsy reason'))
+        });
     } else {
       done();
     }
@@ -4896,7 +4922,13 @@ Runner.prototype.runSuite = function(suite, fn){
  */
 
 Runner.prototype.uncaught = function(err){
-  debug('uncaught exception %s', err.message);
+  if (err) {
+    debug('uncaught exception %s', err.message);
+  } else {
+    debug('uncaught undefined exception');
+    err = new Error('Catched undefined error, did you throw without specifying what?');
+  }
+  
   var runnable = this.currentRunnable;
   if (!runnable || 'failed' == runnable.state) return;
   runnable.clearTimeout();
@@ -5088,6 +5120,7 @@ function Suite(title, parentContext) {
   this._afterAll = [];
   this.root = !title;
   this._timeout = 2000;
+  this._enableTimeouts = true;
   this._slow = 75;
   this._bail = false;
 }
@@ -5114,6 +5147,7 @@ Suite.prototype.clone = function(){
   debug('clone');
   suite.ctx = this.ctx;
   suite.timeout(this.timeout());
+  suite.enableTimeouts(this.enableTimeouts());
   suite.slow(this.slow());
   suite.bail(this.bail());
   return suite;
@@ -5134,6 +5168,21 @@ Suite.prototype.timeout = function(ms){
   this._timeout = parseInt(ms, 10);
   return this;
 };
+
+/**
+  * Set timeout `enabled`.
+  *
+  * @param {Boolean} enabled
+  * @return {Suite|Boolean} self or enabled
+  * @api private
+  */
+
+Suite.prototype.enableTimeouts = function(enabled){
+  if (arguments.length === 0) return this._enableTimeouts;
+  debug('enableTimeouts %s', enabled);
+  this._enableTimeouts = enabled;
+  return this;
+}
 
 /**
  * Set slow `ms` or short-hand such as "2s".
@@ -5185,6 +5234,7 @@ Suite.prototype.beforeAll = function(title, fn){
   var hook = new Hook(title, fn);
   hook.parent = this;
   hook.timeout(this.timeout());
+  hook.enableTimeouts(this.enableTimeouts());
   hook.slow(this.slow());
   hook.ctx = this.ctx;
   this._beforeAll.push(hook);
@@ -5211,6 +5261,7 @@ Suite.prototype.afterAll = function(title, fn){
   var hook = new Hook(title, fn);
   hook.parent = this;
   hook.timeout(this.timeout());
+  hook.enableTimeouts(this.enableTimeouts());
   hook.slow(this.slow());
   hook.ctx = this.ctx;
   this._afterAll.push(hook);
@@ -5237,6 +5288,7 @@ Suite.prototype.beforeEach = function(title, fn){
   var hook = new Hook(title, fn);
   hook.parent = this;
   hook.timeout(this.timeout());
+  hook.enableTimeouts(this.enableTimeouts());
   hook.slow(this.slow());
   hook.ctx = this.ctx;
   this._beforeEach.push(hook);
@@ -5263,6 +5315,7 @@ Suite.prototype.afterEach = function(title, fn){
   var hook = new Hook(title, fn);
   hook.parent = this;
   hook.timeout(this.timeout());
+  hook.enableTimeouts(this.enableTimeouts());
   hook.slow(this.slow());
   hook.ctx = this.ctx;
   this._afterEach.push(hook);
@@ -5281,6 +5334,7 @@ Suite.prototype.afterEach = function(title, fn){
 Suite.prototype.addSuite = function(suite){
   suite.parent = this;
   suite.timeout(this.timeout());
+  suite.enableTimeouts(this.enableTimeouts());
   suite.slow(this.slow());
   suite.bail(this.bail());
   this.suites.push(suite);
@@ -5299,6 +5353,7 @@ Suite.prototype.addSuite = function(suite){
 Suite.prototype.addTest = function(test){
   test.parent = this;
   test.timeout(this.timeout());
+  test.enableTimeouts(this.enableTimeouts());
   test.slow(this.slow());
   test.ctx = this.ctx;
   this.tests.push(test);
@@ -5567,16 +5622,19 @@ function ignored(path){
  * @api private
  */
 
-exports.files = function(dir, ret){
+exports.files = function(dir, ext, ret){
   ret = ret || [];
+  ext = ext || ['js'];
+
+  var re = new RegExp('\\.(' + ext.join('|') + ')$');
 
   fs.readdirSync(dir)
   .filter(ignored)
   .forEach(function(path){
     path = join(dir, path);
     if (fs.statSync(path).isDirectory()) {
-      exports.files(path, ret);
-    } else if (path.match(/\.(js|coffee|litcoffee|coffee.md)$/)) {
+      exports.files(path, ext, ret);
+    } else if (path.match(re)) {
       ret.push(path);
     }
   });
@@ -5607,7 +5665,7 @@ exports.slug = function(str){
 exports.clean = function(str) {
   str = str
     .replace(/\r\n?|[\n\u2028\u2029]/g, "\n").replace(/^\uFEFF/, '')
-    .replace(/^function *\(.*\) *{/, '')
+    .replace(/^function *\(.*\) *{|\(.*\) *=> *{?/, '')
     .replace(/\s+\}$/, '');
 
   var spaces = str.match(/^\n?( *)/)[1].length
@@ -5696,9 +5754,57 @@ exports.highlightTags = function(name) {
   }
 };
 
+
+/**
+ * Stringify `obj`.
+ *
+ * @param {Object} obj
+ * @return {String}
+ * @api private
+ */
+
+exports.stringify = function(obj) {
+  if (obj instanceof RegExp) return obj.toString();
+  return JSON.stringify(exports.canonicalize(obj), null, 2).replace(/,(\n|$)/g, '$1');
+}
+
+/**
+ * Return a new object that has the keys in sorted order.
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+exports.canonicalize = function(obj, stack) {
+   stack = stack || [];
+
+   if (exports.indexOf(stack, obj) !== -1) return '[Circular]';
+
+   var canonicalizedObj;
+
+   if ({}.toString.call(obj) === '[object Array]') {
+     stack.push(obj);
+     canonicalizedObj = exports.map(obj, function(item) {
+       return exports.canonicalize(item, stack);
+     });
+     stack.pop();
+   } else if (typeof obj === 'object' && obj !== null) {
+     stack.push(obj);
+     canonicalizedObj = {};
+     exports.forEach(exports.keys(obj).sort(), function(key) {
+       canonicalizedObj[key] = exports.canonicalize(obj[key], stack);
+     });
+     stack.pop();
+   } else {
+     canonicalizedObj = obj;
+   }
+
+   return canonicalizedObj;
+ }
+
 }); // module: utils.js
 // The global object is "self" in Web Workers.
-global = (function() { return this; })();
+var global = (function() { return this; })();
 
 /**
  * Save timer references to avoid Sinon interfering (see GH-237).
@@ -5725,13 +5831,20 @@ process.stdout = {};
 
 var uncaughtExceptionHandlers = [];
 
+var originalOnerrorHandler = global.onerror;
+
 /**
  * Remove uncaughtException listener.
+ * Revert to original onerror handler if previously defined.
  */
 
 process.removeListener = function(e, fn){
   if ('uncaughtException' == e) {
-    global.onerror = function() {};
+    if (originalOnerrorHandler) {
+      global.onerror = originalOnerrorHandler;
+    } else {
+      global.onerror = function() {};
+    }
     var i = Mocha.utils.indexOf(uncaughtExceptionHandlers, fn);
     if (i != -1) { uncaughtExceptionHandlers.splice(i, 1); }
   }

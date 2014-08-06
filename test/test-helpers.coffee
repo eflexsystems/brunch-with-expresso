@@ -1,4 +1,3 @@
-mocha.setup("bdd")
 window.expect = chai.expect
 
 chai.Assertion.addMethod 'emberInstanceOf', (type) ->
