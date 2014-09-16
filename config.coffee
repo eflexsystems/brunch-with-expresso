@@ -3,17 +3,21 @@ sysPath = require 'path'
 startsWith = (string, substring) ->
   string.lastIndexOf(substring, 0) is 0
 
+vendorJsRegex = ['vendor/js/*']
+
 if process.env.BRUNCH_ENV == 'production'
   noMatch         = /\b\B/
   testRegex       = noMatch
   vendorTestRegex = noMatch
   testCssRegex    = noMatch
-  vendorJsRegex   = /^(bower_components|vendor\/js\/(?!ember.js|ember-data.js))/
+
+  vendorJsRegex.push("bower_components/**/!(*ember.js|*ember-data.js)")
 else
   testRegex       = /^test[\\/](?!vendor)/
   vendorTestRegex = /^test[\\/](?=vendor)/
   testCssRegex    = /^test/
-  vendorJsRegex   = /^(bower_components|vendor\/js\/(?!ember.min.js|ember-data.min.js))/
+
+  vendorJsRegex.push("bower_components/**/!(*ember.min.js|*ember-data.min.js)")
 
 exports.config =
   # See docs at http://brunch.readthedocs.org/en/latest/config.html.
@@ -21,6 +25,8 @@ exports.config =
     path: 'server.coffee'
 
   plugins:
+    on: ['autoprefixer-brunch']
+
     coffeelint:
       pattern: /^app\/.*\.coffee$/
       options:
@@ -46,15 +52,9 @@ exports.config =
       order:
         before: [
           'test/vendor/scripts/chai.js',
-          'bower_components/jquery/dist/jquery.js',
-          'bower_components/handlebars/handlebars.js',
-          'vendor/js/ember.js',
-          'vendor/js/ember.min.js'
         ]
         after: [
-          'vendor/js/ember-data.js',
-          'vendor/js/ember-data.min.js'
-          'test/vendor/scripts/adapter.js'
+          'test/vendor/scripts/adapter.js',
         ]
 
     stylesheets:
@@ -72,7 +72,7 @@ exports.config =
         # If you don't specify jquery and ember there,
         # raw (non-Emberized) Handlebars templates will be compiled.
         jquery: 'bower_components/jquery/dist/jquery.min.js'
-        ember: 'vendor/js/ember.min.js'
+        ember: 'bower_components/ember/ember.min.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
         emblem: 'node_modules/emblem/dist/emblem.js'
 

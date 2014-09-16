@@ -11,15 +11,37 @@
   "dependencies": {
     "jquery": "2.1.1",
     "lodash": "2.4.1",
-    "moment": "2.8.1",
+    "moment": "2.8.3",
     "bootstrap": "3.2.0",
     "handlebars": "1.3.0",
-    "socket.io-client": "1.0.6",
-    "components-font-awesome": "4.1.0"
+    "socket.io-client": "1.1.0",
+    "components-font-awesome": "4.2.0",
+    "ember": "1.7.0",
+    "ember-data": "1.0.0-beta.10"
   },
   "overrides": {
     "socket.io-client": {
       "main": "dist/socket.io.min.js"
+    },
+    "font-awesome": {
+      "dependencies": {
+        "bootstrap": "*"
+      }
+    },
+    "lodash": {
+      "main": "dist/lodash.min.js"
+    },
+    "ember": {
+      "main": [
+        "ember.js",
+        "ember.min.js"
+      ]
+    },
+    "ember-data": {
+      "main": [
+        "ember-data.js",
+        "ember-data.min.js"
+      ]
     }
   }
 }
